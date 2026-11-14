@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kiss of War — Военные корабли · «Массачусетс» № 20</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1a29">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Прокачка линкора">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<style>
+  :root{
+    --bg0:#08121d; --bg1:#0d1c2b; --panel:#132637; --panel2:#183046; --line:#2a4a66;
+    --txt:#dbe8f2; --mut:#8aa3b6; --gold:#e8b64c; --gold2:#f4d47c; --blue:#4fa3e0;
+    --green:#5cc98a; --red:#e06c6c; --steel:#9aa7b1;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    min-height:100vh;color:var(--txt);
+    font:15px/1.45 "Segoe UI",Roboto,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #14324c 0%, rgba(20,50,76,0) 60%),
+      linear-gradient(180deg,#08121d 0%,#0b1a29 45%,#071019 100%);
+  }
+  /* ---------- верхняя панель ресурсов ---------- */
+  .topbar{display:flex;gap:20px;align-items:center;padding:9px 22px;
+    background:linear-gradient(180deg,#1a2f44,#122334);border-bottom:1px solid var(--line);
+    font-size:12.5px;color:var(--mut);flex-wrap:wrap}
+  .topbar .res{display:flex;align-items:center;gap:6px}
+  .topbar .res b{color:var(--txt);font-weight:600}
+  .topbar .coin{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .topbar .coin b{color:var(--gold2)}
+  .topbar .plusbtn{width:22px;height:22px;border-radius:6px;border:1px solid var(--gold);
+    background:#2a2410;color:var(--gold2);font-weight:700;cursor:pointer;line-height:1}
+  .wrap{max-width:1120px;margin:0 auto;padding:14px 18px 60px}
+  /* ---------- линкор + вкладки ---------- */
+  .ship-line{display:flex;align-items:center;gap:12px;padding:10px 2px 8px}
+  .langbar{display:flex;gap:6px;justify-content:flex-end;padding:8px 0 2px}
+  .langbar button{min-width:46px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);
+    background:#101f2e;color:var(--mut);cursor:pointer;font-size:12px;letter-spacing:.6px}
+  .langbar button.active{background:linear-gradient(180deg,#1d3750,#16293d);color:var(--gold2);
+    border-color:#3d6489}
+  .ship-info{display:flex;flex-direction:column;gap:2px}
+  .tabs{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:1fr 1fr;gap:6px;
+    margin:0 -18px 12px;padding:8px 18px;
+    background:linear-gradient(180deg,#0b1a29 70%,rgba(11,26,41,.85));
+    box-shadow:0 8px 18px rgba(0,0,0,.4)}
+  .tab{padding:10px 6px;border:1px solid var(--line);border-radius:8px;
+    background:#101f2e;color:var(--mut);cursor:pointer;font-size:12px;letter-spacing:.3px;
+    text-transform:uppercase;text-align:center;white-space:normal;line-height:1.25}
+  .tab.active{background:linear-gradient(180deg,#1d3750,#16293d);color:var(--gold2);
+    border-color:#3d6489;box-shadow:inset 0 1px 0 #3d6489}
+  /* ---------- шапка экрана ---------- */
+  .screen-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .back{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);
+    background:#132637;color:var(--mut);font-size:17px;cursor:pointer}
+  .back:hover{background:#1b3449}
+  .screen-head h2{margin:0;font-size:18px;letter-spacing:1.2px;text-transform:uppercase;
+    color:#f0e6cf;text-shadow:0 0 14px rgba(232,182,76,.28);flex:1}
+  .details{display:block;width:100%;padding:11px 14px;border-radius:9px;border:1px solid #3f7a4e;
+    background:linear-gradient(180deg,#1e4a30,#143424);color:#bfe9cd;cursor:pointer;
+    font-size:12.5px;letter-spacing:.5px;margin-bottom:14px}
+  .details:hover{filter:brightness(1.12)}
+  /* ---------- корабль ---------- */
+  .ship{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    background:linear-gradient(180deg,#0e2338 0%,#0a1a2b 55%,#0d2233 100%);padding:16px 20px 12px}
+  .ship-stats{display:flex;gap:26px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--mut)}
+  .ship-stats .v{color:var(--txt);font-weight:600;font-size:15px;margin-left:6px}
+  .ship-stats .xp{flex:1;min-width:180px}
+  .xpbar{height:7px;border-radius:5px;background:#0a1622;border:1px solid #1e374d;overflow:hidden;margin-top:5px}
+  .xpbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3f7fb5,#7fd0ff);transition:width .25s}
+  .ship-art{display:flex;justify-content:center;align-items:flex-end;gap:26px;margin:6px 0 2px;
+    min-height:190px}
+  .ship-plate{display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:2px}
+  .rank{background:linear-gradient(180deg,#f0cd7a,#b98a2c);color:#241a05;font-weight:700;
+    padding:3px 12px;border-radius:6px;font-size:14px;letter-spacing:1px}
+  .ship-info .cls{font-size:12px;letter-spacing:2px;color:#e6ddc4}
+  .ship-info .nm{font-size:15px;color:#f2ead6;letter-spacing:.6px}
+  .share{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#132637;
+    color:var(--mut);cursor:pointer;margin-left:10px}
+  /* ---------- дерево модулей ---------- */
+  .tree{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:rgba(13,28,43,.75);
+    padding:14px 16px 20px}
+  .tree-title{text-align:center;font-size:15px;letter-spacing:2px;text-transform:uppercase;
+    color:#e9dfc6;margin-bottom:14px;text-shadow:0 0 12px rgba(232,182,76,.25)}
+  .hexgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px;max-width:760px;margin:0 auto}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;
+    transition:transform .12s}
+  .cell:hover{transform:translateY(-2px)}
+  .hex{width:104px;height:118px;display:flex;align-items:center;justify-content:center;
+    clip-path:polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%);
+    background:linear-gradient(180deg,#24405a,#16293c);border:none;position:relative}
+  .hex::after{content:"";position:absolute;inset:0;pointer-events:none;
+    clip-path:polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%);
+    box-shadow:inset 0 0 0 3px rgba(120,165,205,.35)}
+  .cell.gray .hex{background:linear-gradient(180deg,#3a4650,#242e36)}
+  .cell.blue .hex{background:linear-gradient(180deg,#2c5f8a,#173954)}
+  .cell.gold .hex{background:linear-gradient(180deg,#6d5522,#3d3113)}
+  .cell.maxed .hex{background:linear-gradient(180deg,#33506a,#1e3448)}
+  .hex .ic{font-size:36px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+  .hex .lk{position:absolute;bottom:14px;right:12px;font-size:15px;z-index:2}
+  .hexlvl{font-size:12.5px;color:var(--mut);letter-spacing:.5px}
+  .hexlvl b{color:var(--txt)}
+  .cell.locked .hexlvl{color:#c98b8b}
+  .cellname{font-size:11.5px;color:var(--mut);text-align:center;max-width:150px;min-height:28px}
+  /* ---------- статистика ---------- */
+  .stats{margin-top:18px;border:1px solid var(--line);border-radius:14px;
+    background:rgba(13,28,43,.8);padding:16px 18px}
+  .stats h3{margin:0 0 12px;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--gold2)}
+  .st-top{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;color:var(--mut)}
+  .st-top b{color:var(--gold2);font-size:17px;font-weight:600}
+  .st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px 22px}
+  .brow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;
+    border-bottom:1px dashed #1c3145}
+  .brow span{color:var(--mut)}
+  .brow b.pos{color:var(--green)} .brow b.neg{color:var(--red)}
+  .toolbar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .toolbar button{padding:8px 14px;border-radius:8px;border:1px solid var(--line);
+    background:#1b3247;color:var(--txt);cursor:pointer;font-size:12.5px}
+  .toolbar button:hover{background:#24435e}
+  .note{font-size:12px;color:var(--mut);margin-top:10px;line-height:1.5}
+  /* ---------- модальное окно прокачки ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(4,10,16,.72);display:none;
+    align-items:flex-start;justify-content:center;padding:28px 14px;z-index:50;overflow:auto}
+  .overlay.open{display:flex}
+  .modal{width:100%;max-width:720px;border-radius:14px;border:1px solid #3d6489;
+    background:linear-gradient(180deg,#1b2f43 0%,#132435 100%);
+    box-shadow:0 24px 60px rgba(0,0,0,.6), inset 0 1px 0 #4a729a}
+  .m-head{position:relative;text-align:center;padding:16px 18px 10px;
+    border-bottom:1px solid #2a4a66}
+  .m-head h3{margin:0;font-size:19px;letter-spacing:2px;text-transform:uppercase;color:#f0e6cf;
+    text-shadow:0 0 12px rgba(232,182,76,.3)}
+  .m-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:8px;
+    border:1px solid var(--line);background:#132637;color:var(--mut);font-size:17px;cursor:pointer}
+  .m-close:hover{background:#223d55;color:var(--txt)}
+  .m-body{display:grid;grid-template-columns:190px 1fr;gap:16px;padding:16px 18px}
+  .m-left{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .m-hex{width:96px;height:110px;display:flex;align-items:center;justify-content:center;
+    clip-path:polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%);
+    background:linear-gradient(180deg,#2c5f8a,#173954)}
+  .m-hex .ic{font-size:34px}
+  .m-hexlvl{font-size:13px;color:var(--mut)}
+  .m-hexlvl b{color:var(--txt);font-size:15px}
+  .m-lvl{font-size:13px;color:var(--mut);margin-top:4px}
+  .m-lvl b{color:var(--green);font-size:15px}
+  .m-right{display:flex;flex-direction:column;gap:9px}
+  .m-stats{display:flex;gap:26px;font-size:13px;color:var(--mut)}
+  .m-stats b{color:var(--txt);font-size:15px}
+  .m-stats .plus{color:var(--green);font-weight:600}
+  .m-row{font-size:13px;color:var(--mut)}
+  .m-row b{color:var(--txt);font-weight:600}
+  .m-next span{color:#bcd6ea}
+  .m-req{margin-top:2px;border-top:1px solid #2a4a66;padding-top:8px}
+  .m-req .t{font-size:12px;letter-spacing:1px;color:var(--mut);text-transform:uppercase;margin-bottom:5px}
+  .rq{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px dashed #1e374d;
+    font-size:13px}
+  .rq:last-child{border-bottom:none}
+  .rq .ri{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+    font-size:15px;border-radius:6px;background:#0e1e2d;border:1px solid #1e374d}
+  .rq .rn{flex:1;color:var(--txt)}
+  .rq .rlv{color:var(--red);font-size:12.5px}
+  .rq .rlv.ok{color:var(--green)}
+  .rq .go{padding:4px 12px;border-radius:6px;border:1px solid var(--line);background:#1b3247;
+    color:var(--mut);cursor:pointer;font-size:11.5px;letter-spacing:.5px}
+  .rq .go:hover{background:#24435e;color:var(--txt)}
+  .m-cost{display:flex;align-items:center;gap:14px;padding:12px 18px;border-top:1px solid #2a4a66;
+    font-size:13px;color:var(--mut);flex-wrap:wrap}
+  .m-cost .pwr{display:flex;align-items:center;gap:7px}
+  .m-cost b{color:var(--gold2);font-size:15px}
+  .m-actions{display:flex;gap:10px;padding:0 18px 18px;flex-wrap:wrap}
+  .m-actions button{flex:1 1 150px;min-width:140px;padding:13px 8px;border-radius:9px;cursor:pointer;
+    font-size:12px;letter-spacing:.3px;font-weight:600;border:1px solid;white-space:normal;line-height:1.25}
+  .btn-blue{background:linear-gradient(180deg,#2f6ea3,#1d4d77);border-color:#4f8fc4;color:#eaf5ff}
+  .btn-blue:hover:not(:disabled){filter:brightness(1.12)}
+  .btn-gold{background:linear-gradient(180deg,#8a6a24,#5d4715);border-color:#c39a3e;color:#ffeec2}
+  .btn-gold:hover:not(:disabled){filter:brightness(1.15)}
+  .m-actions button:disabled{opacity:.4;cursor:not-allowed}
+  .btn-mini{flex:0 0 52px !important;background:#22384e !important;border-color:#3a5c7c !important;
+    color:#cfe0ee !important;font-weight:500 !important}
+  .empty-req{font-size:12px;color:var(--green);padding:4px 0}
+  @media(max-width:640px){
+    .m-body{grid-template-columns:1fr}
+    .m-left{flex-direction:row;justify-content:center}
+    .hexgrid{gap:10px}
+    .hex{width:88px;height:100px}
+  }
+  @media(max-width:480px){
+    .m-actions button{flex:1 1 100%}
+    .m-actions .btn-mini{flex:0 0 60px}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="langbar">
+    <button data-lang="ru">RU</button>
+    <button data-lang="en">EN</button>
+    <button data-lang="de">DE</button>
+  </div>
+  <div class="ship-line">
+    <span class="rank">S7+</span>
+    <span class="ship-info">
+      <span class="cls" id="ship-class">КЛАСС «ФЛЕТЧЕР»</span>
+      <span class="nm" id="ship-name">«МАССАЧУСЕТС» № 20</span>
+    </span>
+  </div>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <div class="screen-head">
+    <button class="back" title="Назад">‹‹</button>
+    <h2 id="tab-title">РЛС управления огнём</h2>
+  </div>
+
+  <button class="details" id="btn-details">ПОДРОБНОСТИ ЛИНКОРА</button>
+
+  <section class="tree">
+    <div class="tree-title" id="tree-title">РЛС управления огнём</div>
+    <div class="hexgrid" id="hexgrid"></div>
+  </section>
+
+  <section class="stats" id="stats">
+    <h3 id="stats-title">Статистика прокачки</h3>
+    <div class="st-top">
+      <span><span id="st-spent-lbl">Вложено болтов:</span> <b id="st-cost">0</b></span>
+      <span><span id="st-levels-lbl">Уровней модулей:</span> <b id="st-lvl">0</b></span>
+      <span><span id="st-maxed-lbl">На максимуме:</span> <b id="st-max">0/36</b></span>
+      <span><span id="st-full-lbl">Полная прокачка:</span> <b id="st-total">3 753 444</b></span>
+    </div>
+    <div class="st-grid" id="st-list"></div>
+    <div class="toolbar">
+      <button id="btn-reset">Сбросить</button>
+    </div>
+  </section>
+</div>
+
+<!-- модальное окно прокачки -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="m-head"><h3 id="m-title">Модуль</h3><button class="m-close" id="m-close">×</button></div>
+    <div class="m-body">
+      <div class="m-left">
+        <div class="m-hex"><span class="ic" id="m-icon">⚙️</span></div>
+        <div class="m-hexlvl"><b id="m-cur">0</b>/<span id="m-max">32</span></div>
+        <div class="m-lvl">Ур. <span id="m-from">0</span> → <b id="m-to">1</b></div>
+      </div>
+      <div class="m-right">
+        <div class="m-stats">
+          <span><span id="m-power-lbl">Сила</span> <b id="m-p0">0</b> <span class="plus" id="m-power">+930</span></span>
+          <span><span id="m-xp-lbl">XP</span> <span class="plus" id="m-xp">+90</span></span>
+        </div>
+        <div class="m-row"><span id="m-cur-lbl">Текущий ур.</span>: <b id="m-bonus-cur">Ничего</b></div>
+        <div class="m-row m-next"><span id="m-next-lbl">Следующий ур.</span>: <span id="m-bonus-next">—</span></div>
+        <div class="m-req" id="m-req"></div>
+      </div>
+    </div>
+    <div class="m-cost">
+      <span class="pwr">🪙 <b id="m-nextcost">9</b></span>
+      <span class="pwr">🔧 <b id="m-total">33 460</b> <span id="m-total-lbl">всего по модулю</span></span>
+    </div>
+    <div class="m-actions">
+      <button class="btn-mini" id="m-dec" title="Снизить уровень">−1</button>
+      <button class="btn-blue" id="m-up">МОДИФИЦИРОВАТЬ СЕЙЧАС</button>
+      <button class="btn-gold" id="m-maxbtn">МГНОВЕННАЯ МОДИФИКАЦИЯ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- данные (цены и бонусы из boats.xlsx, требования — по скриншотам) ---------- */
+const GRAY_COST = [9,14,20,26,32,41,50,59,72,85,100,122,150,180,210,260,310,380,470,560,650,750,850,1060,1400,1780,2200,2740,3400,4180,5100,6200];
+const BLUE_COST = [68,86,106,130,160,200,250,315,395,490,600,730,880,1050,1240,1455,1700,1975,2305,2715,3245,3880,4700,5810,7250,9270,11940,15465,19820,24736,30104,36800];
+const GOLD_COST = [636,725,840,990,1240,1790,2800,4590,6940,10090,14400];
+
+const B4 = [4,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80,84,88,92,97,102,107,112,117,122,127,132,137];
+const B3 = [3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,51,54,57,60,63,66,69,73,77,81,85,89,93,97,101,105];
+const B1 = Array.from({length:32},(_,i)=>i+1);
+const G1 = [1,2,3,4,5,6,7,8,9,11,13];
+
+const POWER = {gray:930, blue:4900, gold:44340};   // прирост силы за уровень (со скриншотов)
+const XPP   = {gray:90,  blue:680,  gold:6360};    // прирост XP за уровень (со скриншотов)
+
+/* ---------- языки ---------- */
+const LANGS = ["ru","en","de"];
+let lang = LANGS.includes(localStorage.getItem("kow_lang")) ? localStorage.getItem("kow_lang") : "ru";
+
+const I18N = {
+  ru:{
+    "btn.details":"ПОДРОБНОСТИ ЛИНКОРА","btn.reset":"Сбросить",
+    "btn.up":"МОДИФИЦИРОВАТЬ СЕЙЧАС","btn.instant":"МГНОВЕННАЯ МОДИФИКАЦИЯ",
+    "modal.lvl":"Ур.","modal.power":"Сила","modal.xp":"XP",
+    "modal.current":"Текущий ур.","modal.next":"Следующий ур.",
+    "modal.req":"Требования","modal.maxed":"Модуль на максимуме",
+    "modal.noReq":"Нет требований — можно прокачивать в любой момент.",
+    "modal.needAllBlue":"Нужны все синие модули вкладки на 32 уровне",
+    "modal.allBlueOk":"✓ все синие модули вкладки на максимуме",
+    "modal.total":"всего по модулю",
+    "modal.nextDesc":". Действует при развёртывании этого линкора.",
+    "modal.nothing":"Ничего","modal.go":"ВПЕРЁД",
+    "stats.title":"Статистика прокачки","stats.spent":"Вложено болтов",
+    "stats.levels":"Уровней модулей","stats.maxed":"На максимуме","stats.full":"Полная прокачка",
+    "stats.empty":"Пока нет прокачанных модулей.",
+    "reset.confirm":"Сбросить все уровни модулей?","back.title":"Назад","ship.title":"Прокачка линкора",
+    "ship.class":"КЛАСС «ФЛЕТЧЕР»","ship.name":"«МАССАЧУСЕТС» № 20"
+  },
+  en:{
+    "btn.details":"SHIP DETAILS","btn.reset":"Reset",
+    "btn.up":"UPGRADE NOW","btn.instant":"INSTANT UPGRADE",
+    "modal.lvl":"Lvl.","modal.power":"Power","modal.xp":"XP",
+    "modal.current":"Current lvl.","modal.next":"Next lvl.",
+    "modal.req":"Requirements","modal.maxed":"Module is maxed out",
+    "modal.noReq":"No requirements — can be upgraded anytime.",
+    "modal.needAllBlue":"All blue modules of the tab must reach level 32",
+    "modal.allBlueOk":"✓ all blue modules of the tab are maxed out",
+    "modal.total":"total per module",
+    "modal.nextDesc":". Active when this battleship is deployed.",
+    "modal.nothing":"Nothing","modal.go":"FORWARD",
+    "stats.title":"Upgrade Statistics","stats.spent":"Bolts spent",
+    "stats.levels":"Module levels","stats.maxed":"Maxed out","stats.full":"Full upgrade",
+    "stats.empty":"No upgraded modules yet.",
+    "reset.confirm":"Reset all module levels?","back.title":"Back","ship.title":"Ship Upgrades",
+    "ship.class":"CLASS \"FLETCHER\"","ship.name":"MASSACHUSETTS No. 20"
+  },
+  de:{
+    "btn.details":"SCHIFFSDETAILS","btn.reset":"Zurücksetzen",
+    "btn.up":"JETZT AUFWERTEN","btn.instant":"SOFORTIGE MODIFIKATION",
+    "modal.lvl":"Stufe","modal.power":"Stärke","modal.xp":"XP",
+    "modal.current":"Aktuelle Stufe","modal.next":"Nächste Stufe",
+    "modal.req":"Voraussetzungen","modal.maxed":"Modul ist maximal",
+    "modal.noReq":"Keine Voraussetzungen — kann jederzeit aufgewertet werden.",
+    "modal.needAllBlue":"Alle blauen Module des Tabs müssen Stufe 32 erreicht haben",
+    "modal.allBlueOk":"✓ alle blauen Module des Tabs sind maximal",
+    "modal.total":"gesamt pro Modul",
+    "modal.nextDesc":". Aktiv, wenn dieses Schlachtschiff eingesetzt ist.",
+    "modal.nothing":"Nichts","modal.go":"WEITER",
+    "stats.title":"Aufwertungsstatistik","stats.spent":"Bolzen ausgegeben",
+    "stats.levels":"Modulstufen","stats.maxed":"Maximal","stats.full":"Komplettes Upgrade",
+    "stats.empty":"Noch keine aufgewerteten Module.",
+    "reset.confirm":"Alle Modulstufen zurücksetzen?","back.title":"Zurück","ship.title":"Schiffsaufwertung",
+    "ship.class":"KLASSE \"FLETCHER\"","ship.name":"MASSACHUSETTS Nr. 20"
+  }
+};
+
+const TAB_NAMES = {
+  ru:{rls:{name:"РЛС управления огнём",title:"РЛС УПРАВЛЕНИЯ ОГНЁМ"},
+      ant:{name:"Антенна системы связи",title:"АНТЕННА СИСТЕМЫ СВЯЗИ"},
+      art:{name:"Военно-морская артиллерия",title:"ВОЕННО-МОРСКАЯ АРТИЛЛЕРИЯ"},
+      arm:{name:"Броня",title:"БРОНЯ"}},
+  en:{rls:{name:"Fire Control Radar",title:"FIRE CONTROL RADAR"},
+      ant:{name:"Communication Antenna",title:"COMMUNICATION ANTENNA"},
+      art:{name:"Naval Artillery",title:"NAVAL ARTILLERY"},
+      arm:{name:"Armor",title:"ARMOR"}},
+  de:{rls:{name:"Feuerleitradar",title:"FEUERLEITRADAR"},
+      ant:{name:"Kommunikationsantenne",title:"KOMMUNIKATIONSANTENNE"},
+      art:{name:"Marineartillerie",title:"MARINEARTILLERIE"},
+      arm:{name:"Panzerung",title:"PANZERUNG"}}
+};
+
+const MOD_NAMES = {
+  ru:{rls_g1:"Торпеды",rls_g2:"Рост огневой мощи",rls_g3:"Дистанционное прицеливание",rls_g4:"Множественные удары",
+      rls_b1:"Усиленная оборона",rls_b2:"Антирадар",rls_b3:"Безопасная швартовка",rls_b4:"Спутниковый радар",rls_gold:"Смертельный удар",
+      ant_g1:"Крепление на палубе",ant_g2:"Многопалубный",ant_g3:"Управляемая артиллерия",ant_g4:"Противоракетный щит",
+      ant_b1:"Синий модуль Антенны 1",ant_b2:"Синий модуль Антенны 2",ant_b3:"Синий модуль Антенны 3",ant_b4:"Синий модуль Антенны 4",
+      ant_gold:"Золотой модуль Антенны",
+      art_g1:"Управляемая ракета",art_g2:"Инфильтрация",art_g3:"Орбитальная артиллерия",art_g4:"Зонд для наблюдений",
+      art_b1:"Усиленное главное орудие",art_b2:"Перехват артиллерии",art_b3:"Ремонт корпуса",art_b4:"Артиллерия ближнего действия",
+      art_gold:"Бортовые ракеты",
+      arm_g1:"Блокирование связи",arm_g2:"Декодирование кабеля",arm_g3:"Шифрование разведданных",arm_g4:"Тактический натиск",
+      arm_b1:"Улучшенный порох I",arm_b2:"Продвинутая дальность I",arm_b3:"Нарушение огневой мощи",
+      arm_b4:"Артиллерийский стартовый ускоритель",arm_gold:"Золотой модуль Брони"},
+  en:{rls_g1:"Torpedoes",rls_g2:"Firepower Increase",rls_g3:"Remote Targeting",rls_g4:"Multiple Strikes",
+      rls_b1:"Reinforced Defense",rls_b2:"Anti-Radar",rls_b3:"Safe Mooring",rls_b4:"Satellite Radar",rls_gold:"Deadly Strike",
+      ant_g1:"Deck Mount",ant_g2:"Multideck",ant_g3:"Guided Artillery",ant_g4:"Anti-Missile Shield",
+      ant_b1:"Antenna Blue Module 1",ant_b2:"Antenna Blue Module 2",ant_b3:"Antenna Blue Module 3",ant_b4:"Antenna Blue Module 4",
+      ant_gold:"Antenna Gold Module",
+      art_g1:"Guided Rocket",art_g2:"Infiltration",art_g3:"Orbital Artillery",art_g4:"Observation Probe",
+      art_b1:"Reinforced Main Gun",art_b2:"Artillery Interception",art_b3:"Hull Repair",art_b4:"Close-Range Artillery",
+      art_gold:"Shipboard Rockets",
+      arm_g1:"Communications Jamming",arm_g2:"Cable Decoding",arm_g3:"Intelligence Encryption",arm_g4:"Tactical Onslaught",
+      arm_b1:"Improved Gunpowder I",arm_b2:"Advanced Range I",arm_b3:"Firepower Disruption",
+      arm_b4:"Artillery Starter Accelerator",arm_gold:"Armor Gold Module"},
+  de:{rls_g1:"Torpedos",rls_g2:"Feuerkraftsteigerung",rls_g3:"Fernzielen",rls_g4:"Mehrfachschläge",
+      rls_b1:"Verstärkte Verteidigung",rls_b2:"Antiradar",rls_b3:"Sichere Festmache",rls_b4:"Satellitenradar",rls_gold:"Tödlicher Schlag",
+      ant_g1:"Deckhalterung",ant_g2:"Mehrgeschossig",ant_g3:"Gelenkte Artillerie",ant_g4:"Raketenabwehrchild",
+      ant_b1:"Antenne Blaues Modul 1",ant_b2:"Antenne Blaues Modul 2",ant_b3:"Antenne Blaues Modul 3",ant_b4:"Antenne Blaues Modul 4",
+      ant_gold:"Antenne Goldmodul",
+      art_g1:"Gelenkte Rakete",art_g2:"Infiltration",art_g3:"Orbitale Artillerie",art_g4:"Beobachtungssonde",
+      art_b1:"Verstärktes Hauptgeschütz",art_b2:"Artillerie-Abfangen",art_b3:"Rumpfreparatur",art_b4:"Nahkampfartillerie",
+      art_gold:"Bordraketen",
+      arm_g1:"Kommunikationsstörung",arm_g2:"Kabeldekodierung",arm_g3:"Geheimdienstverschlüsselung",arm_g4:"Taktischer Vorstoß",
+      arm_b1:"Verbessertes Schießpulver I",arm_b2:"Erweiterte Reichweite I",arm_b3:"Feuerkraftstörung",
+      arm_b4:"Artillerie-Startbeschleuniger",arm_gold:"Panzerung Goldmodul"}
+};
+
+const PARAM_NAMES = {
+  ru:{"Атака пехоты":"Атака пехоты","Атака танка":"Атака танка","Атака ПТ-САУ":"Атака ПТ-САУ","Общая атака войск":"Общая атака войск",
+      "Оборона пехоты":"Оборона пехоты","Оборона танка":"Оборона танка","Оборона ПТ-САУ":"Оборона ПТ-САУ","Оборона войск":"Оборона войск",
+      "Здоровье танка":"Здоровье танка","Здоровье ПТ-САУ":"Здоровье ПТ-САУ","Здоровье пехоты":"Здоровье пехоты","Общее здоровье войск":"Общее здоровье войск",
+      "Атака войск при групповой атаке":"Атака войск при групповой атаке","Оборона войск при групповой атаке":"Оборона войск при групповой атаке",
+      "Атака войск при защите зданий":"Атака войск при защите зданий","Оборона войск при защите зданий":"Оборона войск при защите зданий",
+      "Урон наших войск от обычных атак":"Урон наших войск от обычных атак","Урон наших войск от контратак":"Урон наших войск от контратак",
+      "Урон врага от обычных атак":"Урон врага от обычных атак","Урон врага от контратак":"Урон врага от контратак",
+      "Атака врага на территории гильдии":"Атака врага на территории гильдии","Оборона врага на территории гильдии":"Оборона врага на территории гильдии",
+      "Атака войск за пределами территории":"Атака войск за пределами территории","Оборона войск за пределами территории":"Оборона войск за пределами территории",
+      "Серьёзно раненые врага":"Серьёзно раненые врага","Урон наших войск":"Урон наших войск","Урон":"Урон",
+      "Урон (РАЛЛИ)":"Урон (РАЛЛИ)","Урон (ГАРНИЗОН)":"Урон (ГАРНИЗОН)"},
+  en:{"Атака пехоты":"Infantry Attack","Атака танка":"Tank Attack","Атака ПТ-САУ":"AT Attack","Общая атака войск":"General Attack",
+      "Оборона пехоты":"Infantry Defense","Оборона танка":"Tank Defense","Оборона ПТ-САУ":"AT Defense","Оборона войск":"Troop Defense",
+      "Здоровье танка":"Tank Health","Здоровье ПТ-САУ":"AT Health","Здоровье пехоты":"Infantry Health","Общее здоровье войск":"General Health",
+      "Атака войск при групповой атаке":"Attack in Rally","Оборона войск при групповой атаке":"Defense in Rally",
+      "Атака войск при защите зданий":"Attack in Building Defense","Оборона войск при защите зданий":"Defense in Building Defense",
+      "Урон наших войск от обычных атак":"Our Damage from Normal Attacks","Урон наших войск от контратак":"Our Damage from Counterattacks",
+      "Урон врага от обычных атак":"Enemy Damage from Normal Attacks","Урон врага от контратак":"Enemy Damage from Counterattacks",
+      "Атака врага на территории гильдии":"Enemy Attack on Guild Territory","Оборона врага на территории гильдии":"Enemy Defense on Guild Territory",
+      "Атака войск за пределами территории":"Attack Outside Territory","Оборона войск за пределами территории":"Defense Outside Territory",
+      "Серьёзно раненые врага":"Seriously Wounded","Урон наших войск":"Our Troops' Damage","Урон":"Damage",
+      "Урон (РАЛЛИ)":"Damage (RALLY)","Урон (ГАРНИЗОН)":"Damage (GARRISON)"},
+  de:{"Атака пехоты":"Infanterieangriff","Атака танка":"Panzerangriff","Атака ПТ-САУ":"Panzerabwehrangriff","Общая атака войск":"Allgemeiner Angriff",
+      "Оборона пехоты":"Infanterieverteidigung","Оборона танка":"Panzerverteidigung","Оборона ПТ-САУ":"Panzerabwehrverteidigung","Оборона войск":"Truppenverteidigung",
+      "Здоровье танка":"Panzergesundheit","Здоровье ПТ-САУ":"Panzerabwehrgesundheit","Здоровье пехоты":"Infanteriegesundheit","Общее здоровье войск":"Allgemeine Gesundheit",
+      "Атака войск при групповой атаке":"Angriff bei Rallye","Оборона войск при групповой атаке":"Verteidigung bei Rallye",
+      "Атака войск при защите зданий":"Angriff bei Gebäudeverteidigung","Оборона войск при защите зданий":"Verteidigung bei Gebäudeverteidigung",
+      "Урон наших войск от обычных атак":"Unser Schaden durch normale Angriffe","Урон наших войск от контратак":"Unser Schaden durch Gegenangriffe",
+      "Урон врага от обычных атак":"Gegnerischer Schaden durch normale Angriffe","Урон врага от контратак":"Gegnerischer Schaden durch Gegenangriffe",
+      "Атака врага на территории гильдии":"Gegnerischer Angriff auf Gildenterritorium","Оборона врага на территории гильдии":"Gegnerische Verteidigung auf Gildenterritorium",
+      "Атака войск за пределами территории":"Angriff außerhalb des Territoriums","Оборона войск за пределами территории":"Verteidigung außerhalb des Territoriums",
+      "Серьёзно раненые врага":"Schwer Verwundete","Урон наших войск":"Schaden unserer Truppen","Урон":"Schaden",
+      "Урон (РАЛЛИ)":"Schaden (RALLYE)","Урон (ГАРНИЗОН)":"Schaden (GARNISON)"}
+};
+
+function t(k){ return (I18N[lang] && I18N[lang][k]) || k; }
+function modName(m){ return (MOD_NAMES[lang] && MOD_NAMES[lang][m.id]) || m.name; }
+function paramName(p){ return (PARAM_NAMES[lang] && PARAM_NAMES[lang][p]) || p; }
+function tabName(id,field){ const o=TAB_NAMES[lang] && TAB_NAMES[lang][id]; return (o && o[field]) || (TABS.find(x=>x.id===id)||{})[field] || id; }
+function setLang(l){
+  if(!LANGS.includes(l)) return;
+  lang=l; localStorage.setItem("kow_lang",l);
+  render(); updateLangBar();
+}
+function updateLangBar(){
+  document.querySelectorAll(".langbar button").forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+}
+
+
+const TABS = [
+{
+  id:"rls", name:"РЛС управления огнём", title:"РЛС УПРАВЛЕНИЯ ОГНЁМ",
+  modules:[
+    {id:"rls_g1", name:"Торпеды", icon:"🐟", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака пехоты", values:B4, sign:1}, req:[]},
+    {id:"rls_g2", name:"Рост огневой мощи", icon:"💥", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака танка", values:B4, sign:1}, req:[]},
+    {id:"rls_g3", name:"Дистанционное прицеливание", icon:"🎯", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака ПТ-САУ", values:B4, sign:1}, req:[]},
+    {id:"rls_g4", name:"Множественные удары", icon:"🚀", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Общая атака войск", values:B4, sign:1}, req:[]},
+    {id:"rls_b1", name:"Усиленная оборона", icon:"🛡️", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Оборона пехоты", values:B4, sign:1},
+      req:[{id:"rls_g2",lvl:32},{id:"rls_g3",lvl:32},{id:"rls_g1",lvl:32},{id:"rls_g4",lvl:32}]},
+    {id:"rls_b2", name:"Антирадар", icon:"📵", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Оборона танка", values:B4, sign:1},
+      req:[{id:"rls_b1",lvl:32}]},
+    {id:"rls_b3", name:"Безопасная швартовка", icon:"⚓", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Оборона ПТ-САУ", values:B4, sign:1},
+      req:[{id:"rls_b2",lvl:32}]},
+    {id:"rls_b4", name:"Спутниковый радар", icon:"📡", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Оборона войск", values:B4, sign:1},
+      req:[{id:"rls_b3",lvl:32}]},
+    {id:"rls_gold", name:"Смертельный удар", icon:"💀", type:"gold", max:11, cost:GOLD_COST, bonus:{param:"Серьёзно раненые врага", values:G1, sign:1},
+      req:"allBlue"}
+  ]
+},
+{
+  id:"ant", name:"Антенна системы связи", title:"АНТЕННА СИСТЕМЫ СВЯЗИ",
+  modules:[
+    {id:"ant_g1", name:"Крепление на палубе", icon:"🔩", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака врага на территории гильдии", values:B4, sign:-1}, req:[]},
+    {id:"ant_g2", name:"Многопалубный", icon:"🛳️", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака войск за пределами территории", values:B4, sign:1}, req:[]},
+    {id:"ant_g3", name:"Управляемая артиллерия", icon:"🎯", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Оборона войск за пределами территории", values:B4, sign:1}, req:[]},
+    {id:"ant_g4", name:"Противоракетный щит", icon:"🛡️", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Оборона врага на территории гильдии", values:B4, sign:-1}, req:[]},
+    {id:"ant_b1", name:"Синий модуль Антенны 1", icon:"📶", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Урон (РАЛЛИ)", values:B1, sign:-1},
+      req:[{id:"ant_g2",lvl:32},{id:"ant_g3",lvl:32},{id:"ant_g1",lvl:32},{id:"ant_g4",lvl:32}]},
+    {id:"ant_b2", name:"Синий модуль Антенны 2", icon:"⚡", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Урон (ГАРНИЗОН)", values:B3, sign:1},
+      req:[{id:"ant_b1",lvl:32}]},
+    {id:"ant_b3", name:"Синий модуль Антенны 3", icon:"🔊", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Урон (РАЛЛИ)", values:B3, sign:1},
+      req:[{id:"ant_b2",lvl:32}]},
+    {id:"ant_b4", name:"Синий модуль Антенны 4", icon:"📻", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Урон (ГАРНИЗОН)", values:B1, sign:-1},
+      req:[{id:"ant_b3",lvl:32}]},
+    {id:"ant_gold", name:"Золотой модуль Антенны", icon:"⚡", type:"gold", max:11, cost:GOLD_COST, bonus:{param:"Урон", values:G1, sign:1},
+      req:"allBlue"}
+  ]
+},
+{
+  id:"art", name:"Военно-морская артиллерия", title:"ВОЕННО-МОРСКАЯ АРТИЛЛЕРИЯ",
+  modules:[
+    {id:"art_g1", name:"Управляемая ракета", icon:"🚀", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака войск при групповой атаке", values:B3, sign:1}, req:[]},
+    {id:"art_g2", name:"Инфильтрация", icon:"🕵️", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Оборона войск при групповой атаке", values:B3, sign:1}, req:[]},
+    {id:"art_g3", name:"Орбитальная артиллерия", icon:"🛰️", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака войск при защите зданий", values:B3, sign:1}, req:[]},
+    {id:"art_g4", name:"Зонд для наблюдений", icon:"🔭", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Оборона войск при защите зданий", values:B3, sign:1}, req:[]},
+    {id:"art_b1", name:"Усиленное главное орудие", icon:"💣", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Здоровье танка", values:B3, sign:1},
+      req:[{id:"art_g1",lvl:32},{id:"art_g3",lvl:32},{id:"art_g2",lvl:32},{id:"art_g4",lvl:32}]},
+    {id:"art_b2", name:"Перехват артиллерии", icon:"🧲", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Здоровье ПТ-САУ", values:B3, sign:1},
+      req:[{id:"art_b1",lvl:32}]},
+    {id:"art_b3", name:"Ремонт корпуса", icon:"🔧", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Здоровье пехоты", values:B3, sign:1},
+      req:[{id:"art_b2",lvl:32}]},
+    {id:"art_b4", name:"Артиллерия ближнего действия", icon:"💥", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Общее здоровье войск", values:B3, sign:1},
+      req:[{id:"art_b3",lvl:32}]},
+    {id:"art_gold", name:"Бортовые ракеты", icon:"🚀", type:"gold", max:11, cost:GOLD_COST, bonus:{param:"Урон наших войск", values:G1, sign:1},
+      req:"allBlue"}
+  ]
+},
+{
+  id:"arm", name:"Броня", title:"БРОНЯ",
+  modules:[
+    {id:"arm_g1", name:"Блокирование связи", icon:"📵", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Оборона врага от контратаки", values:B4, sign:-1}, req:[]},
+    {id:"arm_g2", name:"Декодирование кабеля", icon:"🔌", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака врага от контратаки", values:B4, sign:-1}, req:[]},
+    {id:"arm_g3", name:"Шифрование разведданных", icon:"🔐", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Оборона войск от обычной атаки", values:B4, sign:1}, req:[]},
+    {id:"arm_g4", name:"Тактический натиск", icon:"⚔️", type:"gray", max:32, cost:GRAY_COST, bonus:{param:"Атака войск от обычной атаки", values:B4, sign:1}, req:[]},
+    {id:"arm_b1", name:"Улучшенный порох I", icon:"🧨", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Урон наших войск от обычных атак", values:B1, sign:-1},
+      req:[{id:"arm_g4",lvl:32},{id:"arm_g3",lvl:32},{id:"arm_g2",lvl:32},{id:"arm_g1",lvl:32}]},
+    {id:"arm_b2", name:"Продвинутая дальность I", icon:"🎯", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Урон наших войск от контратак", values:B1, sign:-1},
+      req:[{id:"arm_b1",lvl:32}]},
+    {id:"arm_b3", name:"Нарушение огневой мощи", icon:"🔥", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Урон врага от обычных атак", values:B3, sign:1},
+      req:[{id:"arm_b2",lvl:32}]},
+    {id:"arm_b4", name:"Артиллерийский стартовый ускоритель", icon:"🚀", type:"blue", max:32, cost:BLUE_COST, bonus:{param:"Урон врага от контратак", values:B3, sign:1},
+      req:[{id:"arm_b3",lvl:32}]},
+    {id:"arm_gold", name:"Золотой модуль Брони", icon:"🛡️", type:"gold", max:11, cost:GOLD_COST, bonus:{param:"Урон", values:G1, sign:-1},
+      req:"allBlue"}
+  ]
+}
+];
+
+/* ---------- состояние ---------- */
+const LS_KEY = "kow_planner_massachusetts_v2";
+let state = {};
+TABS.forEach(t=>t.modules.forEach(m=>state[m.id]=0));
+try{
+  const saved = JSON.parse(localStorage.getItem(LS_KEY)||"{}");
+  for(const k in state) if(typeof saved[k]==="number") state[k]=Math.max(0, Math.min(saved[k], maxOf(k)));
+}catch(e){}
+function maxOf(id){ const m=findModule(id); return m?m.max:0; }
+function findModule(id){ for(const t of TABS){ const m=t.modules.find(x=>x.id===id); if(m) return m; } return null; }
+function tabOf(id){ for(const t of TABS){ if(t.modules.some(x=>x.id===id)) return t; } return null; }
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+/* ---------- расчёты ---------- */
+function reqDone(r){ return state[r.id] >= r.lvl; }
+function allBlueMax(tab){ return tab.modules.filter(m=>m.type==="blue").every(m=>state[m.id]>=m.max); }
+function canUp(id){
+  const m=findModule(id); if(!m) return false;
+  if(state[id]>=m.max) return false;
+  if(m.req==="allBlue") return allBlueMax(tabOf(id));
+  return m.req.every(reqDone);
+}
+function costOf(id){
+  const m=findModule(id), lv=state[id];
+  let s=0; for(let i=0;i<lv;i++) s+=m.cost[i];
+  return s;
+}
+function nextCost(id){ const m=findModule(id), lv=state[id]; return lv<m.max ? m.cost[lv] : 0; }
+function totalCost(){ return TABS.reduce((s,t)=>s+t.modules.reduce((a,m)=>a+costOf(m.id),0),0); }
+function fullCost(){ let s=0; TABS.forEach(t=>t.modules.forEach(m=>m.cost.forEach(c=>s+=c))); return s; }
+function bonusValue(m, lv){ return lv<=0 ? 0 : m.bonus.values[lv-1]*m.bonus.sign; }
+function shipPower(){ let p=22000; TABS.forEach(t=>t.modules.forEach(m=>p+=POWER[m.type]*state[m.id])); return p; }
+function fmt(n){ return n.toLocaleString("ru-RU"); }
+function pct(v){ return (v>0?"+":"")+v+"%"; }
+
+/* ---------- отрисовка ---------- */
+let curTab = TABS[0].id;
+let openId = null;
+
+function renderTabs(){
+  const el=document.getElementById("tabs");
+  el.innerHTML="";
+  TABS.forEach(t=>{
+    const b=document.createElement("button");
+    b.className="tab"+(t.id===curTab?" active":"");
+    b.textContent=tabName(t.id,"name");
+    b.onclick=()=>{curTab=t.id;render();};
+    el.appendChild(b);
+  });
+}
+function render(){
+  const tab=TABS.find(t=>t.id===curTab);
+  document.getElementById("tab-title").textContent=tabName(tab.id,"title");
+  document.getElementById("tree-title").textContent=tabName(tab.id,"title");
+  document.title=t("ship.title");
+  document.getElementById("btn-details").textContent=t("btn.details");
+  document.getElementById("btn-reset").textContent=t("btn.reset");
+  document.getElementById("ship-class").textContent=t("ship.class");
+  document.getElementById("ship-name").textContent=t("ship.name");
+  renderTabs();
+  renderTree(tab);
+  renderStats();
+}
+function renderTree(tab){
+  const g=document.getElementById("hexgrid");
+  g.innerHTML="";
+  tab.modules.forEach(m=>{
+    const lv=state[m.id], done=lv>=m.max, locked=!canUp(m.id)&&!done;
+    const c=document.createElement("div");
+    c.className="cell "+m.type+(done?" maxed":"")+(locked?" locked":"");
+    c.innerHTML=`<div class="hex"><span class="ic">${m.icon}</span>${locked?'<span class="lk">🔒</span>':''}</div>
+      <div class="hexlvl"><b>${lv}</b>/${m.max}</div>
+      <div class="cellname">${modName(m)}</div>`;
+    c.onclick=()=>openModal(m.id);
+    g.appendChild(c);
+  });
+}
+function renderStats(){
+  document.getElementById("stats-title").textContent=t("stats.title");
+  document.getElementById("st-spent-lbl").textContent=t("stats.spent")+":";
+  document.getElementById("st-levels-lbl").textContent=t("stats.levels")+":";
+  document.getElementById("st-maxed-lbl").textContent=t("stats.maxed")+":";
+  document.getElementById("st-full-lbl").textContent=t("stats.full")+":";
+  document.getElementById("st-cost").textContent=fmt(totalCost());
+  document.getElementById("st-total").textContent=fmt(fullCost());
+  let lvls=0, maxed=0;
+  TABS.forEach(t=>t.modules.forEach(m=>{ lvls+=state[m.id]; if(state[m.id]>=m.max) maxed++; }));
+  document.getElementById("st-lvl").textContent=lvls;
+  document.getElementById("st-max").textContent=maxed+"/"+TABS.reduce((s,t)=>s+t.modules.length,0);
+  const agg={};
+  TABS.forEach(t=>t.modules.forEach(m=>{
+    const v=bonusValue(m, state[m.id]);
+    if(v!==0) agg[m.bonus.param]=(agg[m.bonus.param]||0)+v;
+  }));
+  const keys=Object.keys(agg).sort((a,b)=>agg[b]-agg[a]);
+  document.getElementById("st-list").innerHTML = keys.length
+    ? keys.map(k=>`<div class="brow"><span>${paramName(k)}</span><b class="${agg[k]<0?'neg':'pos'}">${pct(agg[k])}</b></div>`).join("")
+    : `<div class="note">${t("stats.empty")}</div>`;
+}
+
+/* ---------- модальное окно ---------- */
+function openModal(id){
+  openId=id;
+  const m=findModule(id), lv=state[id], done=lv>=m.max;
+  document.getElementById("m-title").textContent=modName(m).toUpperCase();
+  document.getElementById("m-icon").textContent=m.icon;
+  document.getElementById("m-cur").textContent=lv;
+  document.getElementById("m-max").textContent=m.max;
+  document.getElementById("m-from").textContent=lv;
+  document.getElementById("m-to").textContent=done?lv:lv+1;
+  document.getElementById("m-power-lbl").textContent=t("modal.power");
+  document.getElementById("m-xp-lbl").textContent=t("modal.xp");
+  document.getElementById("m-cur-lbl").textContent=t("modal.current");
+  document.getElementById("m-next-lbl").textContent=t("modal.next");
+  document.getElementById("m-total-lbl").textContent=t("modal.total");
+  document.getElementById("m-up").textContent=t("btn.up");
+  document.getElementById("m-maxbtn").textContent=t("btn.instant");
+  document.getElementById("m-p0").textContent=fmt(shipPower());
+  document.getElementById("m-power").textContent="+ "+fmt(POWER[m.type]);
+  document.getElementById("m-xp").textContent="+ "+fmt(XPP[m.type]);
+  const cur=bonusValue(m,lv), nxt=done?null:bonusValue(m,lv+1);
+  document.getElementById("m-bonus-cur").textContent = lv>0 ? pct(cur) : t("modal.nothing");
+  document.getElementById("m-bonus-next").textContent = done ? t("modal.maxed") :
+      `${paramName(m.bonus.param)} ${pct(nxt)}${t("modal.nextDesc")}`;
+  const rq=document.getElementById("m-req");
+  let html=`<div class="t">${t("modal.req")}</div>`;
+  if(m.req==="allBlue"){
+    const tab=tabOf(id), blues=tab.modules.filter(x=>x.type==="blue");
+    const allOk=blues.every(x=>state[x.id]>=x.max);
+    blues.forEach(x=>{ const ok=state[x.id]>=x.max;
+      html+=`<div class="rq"><span class="ri">${x.icon}</span><span class="rn">${modName(x)}</span>
+        <span class="rlv ${ok?'ok':''}">${state[x.id]}/${x.max}</span>
+        <button class="go" data-go="${x.id}">${t("modal.go")}</button></div>`;});
+    html+=`<div class="empty-req">${allOk?t("modal.allBlueOk"):t("modal.needAllBlue")}</div>`;
+  } else if(m.req.length){
+    m.req.forEach(r=>{ const rm=findModule(r.id), ok=reqDone(r);
+      html+=`<div class="rq"><span class="ri">${rm.icon}</span><span class="rn">${modName(rm)}</span>
+        <span class="rlv ${ok?'ok':''}">${ok?'':t("modal.lvl")+":"}${state[r.id]}/${r.lvl}</span>
+        <button class="go" data-go="${r.id}">${t("modal.go")}</button></div>`;});
+  } else {
+    html+=`<div class="empty-req">${t("modal.noReq")}</div>`;
+  }
+  rq.innerHTML=html;
+  rq.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>openModal(b.dataset.go));
+  document.getElementById("m-nextcost").textContent=fmt(nextCost(id));
+  let tot=0; m.cost.forEach(c=>tot+=c);
+  document.getElementById("m-total").textContent=fmt(tot);
+  document.getElementById("m-up").disabled=!canUp(id);
+  document.getElementById("m-maxbtn").disabled=!canUp(id);
+  document.getElementById("m-dec").disabled=lv<=0;
+  document.getElementById("overlay").classList.add("open");
+}
+function closeModal(){ document.getElementById("overlay").classList.remove("open"); openId=null; }
+function bump(delta){
+  if(!openId) return;
+  if(delta<0){ if(state[openId]>0) state[openId]--; }
+  else if(canUp(openId)) state[openId]++;
+  save(); render();
+  if(openId) openModal(openId);
+}
+document.getElementById("m-up").onclick=()=>bump(+1);
+document.getElementById("m-dec").onclick=()=>bump(-1);
+document.getElementById("m-maxbtn").onclick=()=>{
+  if(!openId) return;
+  let guard=0;
+  while(canUp(openId) && guard++<300){
+    const m=findModule(openId);
+    if(m.req!=="allBlue"){
+      const unmet=m.req.filter(r=>state[r.id]<r.lvl);
+      if(unmet.length && canUp(unmet[0].id)){ state[unmet[0].id]++; continue; }
+    }
+    state[openId]++;
+  }
+  save(); render();
+  if(openId) openModal(openId);
+};
+document.getElementById("m-close").onclick=closeModal;
+document.getElementById("overlay").addEventListener("click", e=>{ if(e.target.id==="overlay") closeModal(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeModal(); });
+
+/* ---------- прочее ---------- */
+document.getElementById("btn-details").onclick=()=>{
+  document.getElementById("stats").scrollIntoView({behavior:"smooth"});
+};
+document.getElementById("btn-reset").onclick=()=>{
+  if(!confirm(t("reset.confirm"))) return;
+  TABS.forEach(t=>t.modules.forEach(m=>state[m.id]=0));
+  save(); render();
+};
+document.querySelectorAll(".langbar button").forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+updateLangBar();
+render();
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
+</script>
+</body>
+</html>
